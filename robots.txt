@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+
+User-agent: Mediapartners-Google
+Allow: /
+
+Sitemap: https://defence24.netlify.app/sitemap.xml
+Sitemap: https://defence24.netlify.app/news-sitemap.xml
+

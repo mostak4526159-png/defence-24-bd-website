@@ -1,0 +1,41 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "mostak4526159@gmail.com" && request.auth.token.email_verified == true) ||
+        (request.auth.token.email == "admin@defence24bd.com" && request.auth.token.email_verified == true) ||
+        (request.auth.token.email == "editor@defence24bd.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isValidImageUpload() {
+      return request.resource.size < 5 * 1024 * 1024 &&
+             request.resource.contentType.matches('image/.*');
+    }
+
+    // Editorial news images & media
+    match /editorial_media/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidImageUpload();
+    }
+
+    // Public reader submitted images (pending moderation, max 3MB)
+    match /public_submissions/{allPaths=**} {
+      allow read: if true;
+      allow create: if request.resource.size < 3 * 1024 * 1024 &&
+                    request.resource.contentType.matches('image/.*');
+      allow update, delete: if isAdmin();
+    }
+
+    // Default deny
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

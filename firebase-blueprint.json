@@ -1,0 +1,197 @@
+{
+  "entities": {
+    "Article": {
+      "title": "NewsArticle",
+      "description": "Bilingual defense news article or reader submission across the 15 categories.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique article ID" },
+        "category": { "type": "string", "description": "One of the 15 defense categories" },
+        "status": {
+          "type": "string",
+          "enum": ["published", "draft", "pending", "rejected", "unpublished"],
+          "description": "Editorial publication status"
+        },
+        "visualKey": { "type": "string", "description": "Default visual slot key" },
+        "customImageUrl": { "type": "string", "description": "Optional custom uploaded image URL" },
+        "videoUrl": { "type": "string", "description": "Optional embedded video URL" },
+        "organization": { "type": "string", "description": "Issuing force or organization" },
+        "isLeadStory": { "type": "boolean", "description": "Whether displayed as lead story" },
+        "isSecondaryFeature": { "type": "boolean", "description": "Whether displayed as secondary feature" },
+        "isBreakingTicker": { "type": "boolean", "description": "Whether included in breaking news ticker" },
+        "submitterName": { "type": "string", "description": "Public submitter full name" },
+        "submitterEmail": { "type": "string", "description": "Public submitter email" },
+        "sourceInfo": { "type": "string", "description": "Source attribution" },
+        "createdAtIso": { "type": "string", "format": "date-time", "description": "Creation timestamp ISO" }
+      },
+      "required": ["id", "category", "status", "organization"]
+    },
+    "Circular": {
+      "title": "JobCircular",
+      "description": "Official defense recruitment circular in English and Bangla.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string", "enum": ["published", "draft"] },
+        "organization": { "type": "string" },
+        "deadlineDate": { "type": "string" }
+      },
+      "required": ["id", "category", "status", "organization"]
+    },
+    "Notice": {
+      "title": "PortalNotice",
+      "description": "Emergency notice, breaking news alert, or important announcement.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "noticeType": { "type": "string", "enum": ["breaking", "emergency", "important"] },
+        "priority": { "type": "string", "enum": ["critical", "high", "normal"] },
+        "isActive": { "type": "boolean" },
+        "titleEn": { "type": "string" },
+        "titleBn": { "type": "string" },
+        "dateEn": { "type": "string" },
+        "dateBn": { "type": "string" }
+      },
+      "required": ["id", "noticeType", "priority", "isActive", "titleEn", "titleBn"]
+    },
+    "PortalSetting": {
+      "title": "PortalSettings",
+      "description": "Global SEO, AdSense, header, footer, colors, and typography settings.",
+      "type": "object",
+      "properties": {
+        "siteTitleEn": { "type": "string" },
+        "siteTitleBn": { "type": "string" },
+        "adsenseEnabled": { "type": "boolean" },
+        "breakingTickerActive": { "type": "boolean" },
+        "emergencyBannerActive": { "type": "boolean" }
+      },
+      "required": ["siteTitleEn", "siteTitleBn"]
+    },
+    "CustomCategory": {
+      "title": "CustomCategory",
+      "description": "Dynamic custom force category configuration.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "slug": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "nameBn": { "type": "string" },
+        "order": { "type": "number" },
+        "isEnabled": { "type": "boolean" }
+      },
+      "required": ["id", "slug", "nameEn", "nameBn"]
+    },
+    "CustomPage": {
+      "title": "CustomPage",
+      "description": "Custom policy or institutional page with bilingual contents.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "slug": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "titleBn": { "type": "string" },
+        "isPublished": { "type": "boolean" }
+      },
+      "required": ["id", "slug", "titleEn", "titleBn"]
+    },
+    "HomepageSection": {
+      "title": "HomepageSection",
+      "description": "Customizable homepage layout block configuration.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "titleEn": { "type": "string" },
+        "titleBn": { "type": "string" },
+        "order": { "type": "number" },
+        "isEnabled": { "type": "boolean" }
+      },
+      "required": ["id", "type", "titleEn", "titleBn"]
+    },
+    "MediaItem": {
+      "title": "MediaItem",
+      "description": "Uploaded media asset record in Firebase Storage.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "uploadedAtIso": { "type": "string" }
+      },
+      "required": ["id", "url", "name"]
+    },
+    "UserProfile": {
+      "title": "AuthorProfile",
+      "description": "Editorial user or administrator account profile.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "editor", "contributor"] }
+      },
+      "required": ["uid", "email", "name", "role"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLogItem",
+      "description": "Audit log of editorial and administrative actions.",
+      "type": "object",
+      "properties": {
+        "actorEmail": { "type": "string" },
+        "actionType": { "type": "string" },
+        "detailsEn": { "type": "string" },
+        "detailsBn": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["actorEmail", "actionType", "detailsEn", "detailsBn"]
+    }
+  },
+  "firestore": {
+    "/articles/{articleId}": {
+      "schema": { "$ref": "#/entities/Article" },
+      "description": "Published defense news articles and pending public submissions."
+    },
+    "/circulars/{circularId}": {
+      "schema": { "$ref": "#/entities/Circular" },
+      "description": "Official defense recruitment circulars."
+    },
+    "/notices/{noticeId}": {
+      "schema": { "$ref": "#/entities/Notice" },
+      "description": "Breaking news, emergency notices, and official announcements."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/PortalSetting" },
+      "description": "Global portal, SEO, and AdSense settings."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/CustomCategory" },
+      "description": "Dynamic custom categories."
+    },
+    "/pages/{pageId}": {
+      "schema": { "$ref": "#/entities/CustomPage" },
+      "description": "Custom editorial and legal pages."
+    },
+    "/homepage_sections/{sectionId}": {
+      "schema": { "$ref": "#/entities/HomepageSection" },
+      "description": "Configurable homepage sections."
+    },
+    "/media/{mediaId}": {
+      "schema": { "$ref": "#/entities/MediaItem" },
+      "description": "Media library assets metadata."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Editorial and administrator user profiles."
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Admin role lookup collection."
+    },
+    "/activity_logs/{logId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Audit logs of administrative actions."
+    }
+  }
+}

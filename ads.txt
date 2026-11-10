@@ -1,0 +1,7 @@
+# Google AdSense Authorized Digital Sellers (ads.txt) for Defence 24 BD
+# Status: Prepared for Google AdSense Verification & Approval
+# Instructions: After receiving official Google AdSense approval and your real Publisher ID,
+# uncomment the line below and replace YOUR_REAL_ADSENSE_PUBLISHER_ID (e.g. pub-1234567890123456).
+# Do NOT publish a fake Publisher ID prior to approval.
+#
+# google.com, pub-YOUR_REAL_ADSENSE_PUBLISHER_ID, DIRECT, f08c47fec0942fa0

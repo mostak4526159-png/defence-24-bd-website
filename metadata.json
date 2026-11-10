@@ -1,0 +1,6 @@
+{
+  "name": "Defence 24 BD",
+  "description": "Independent Defense, Public Security & Official Recruitment News Portal of Bangladesh in English and Bangla.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

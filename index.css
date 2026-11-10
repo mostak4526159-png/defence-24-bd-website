@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-en-display: 'Playfair Display', Georgia, serif;
+    --font-en-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-bn-display: 'Noto Serif Bengali', serif;
+    --font-bn-sans: 'Hind Siliguri', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html[lang="en"] body {
+    font-family: var(--font-en-sans);
+    line-height: 1.65;
+  }
+
+  html[lang="en"] .font-editorial {
+    font-family: var(--font-en-display);
+  }
+
+  html[lang="bn"] body {
+    font-family: var(--font-bn-sans);
+    line-height: 1.8;
+  }
+
+  html[lang="bn"] .font-editorial {
+    font-family: var(--font-bn-display);
+    line-height: 1.45;
+  }
+
+  .font-tabular {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes ticker-scroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: ticker-scroll 48s linear infinite;
+}
+
+.ticker-track:hover {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
+}

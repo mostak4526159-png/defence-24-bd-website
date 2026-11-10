@@ -1,0 +1,193 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() &&
+        request.auth.token.email == "mostak4526159@gmail.com" &&
+        request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isAuthenticated() && (
+          (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+           get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.status == 'active') ||
+          (request.auth.token.email != null &&
+           exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+           get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.status == 'active')
+        )
+      );
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isValidCategory(cat) {
+      return cat is string && cat.size() >= 2 && cat.size() <= 80;
+    }
+
+    function isValidArticleStatus(status) {
+      return status in ['published', 'draft', 'pending', 'rejected', 'unpublished'];
+    }
+
+    // Valid public reader submission (strictly forced to 'pending' status)
+    function isValidPublicSubmission() {
+      return hasRequiredFields(['id', 'category', 'status', 'organization', 'en', 'bn']) &&
+             request.resource.data.id is string &&
+             request.resource.data.id.size() > 0 &&
+             request.resource.data.id.size() <= 120 &&
+             isValidCategory(request.resource.data.category) &&
+             request.resource.data.status == 'pending' &&
+             request.resource.data.isLeadStory == false &&
+             request.resource.data.isSecondaryFeature == false &&
+             request.resource.data.isBreakingTicker == false &&
+             request.resource.data.organization is string &&
+             request.resource.data.organization.size() <= 200 &&
+             request.resource.data.en is map &&
+             request.resource.data.bn is map;
+    }
+
+    function isValidAdminArticle() {
+      return hasRequiredFields(['id', 'category', 'status', 'organization', 'en', 'bn']) &&
+             request.resource.data.id is string &&
+             request.resource.data.id.size() <= 120 &&
+             isValidCategory(request.resource.data.category) &&
+             isValidArticleStatus(request.resource.data.status) &&
+             request.resource.data.organization is string &&
+             request.resource.data.organization.size() <= 200;
+    }
+
+    function hasPermission(perm) {
+      return isAdmin() && (
+        isSuperAdmin() || 
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.permissions.hasAny([perm]))
+      );
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    // 1. News Articles & Public Submissions
+    match /articles/{articleId} {
+      allow read: if (resource.data.status == 'published') || isAdmin();
+      allow create: if (hasPermission('add_news') && isValidAdminArticle()) || isValidPublicSubmission();
+      allow update: if hasPermission('edit_news') && isValidAdminArticle();
+      allow delete: if hasPermission('delete_news');
+    }
+
+    // 2. Official Recruitment Circulars
+    match /circulars/{circularId} {
+      allow read: if true;
+      allow create, update: if hasPermission('manage_circulars') &&
+        hasRequiredFields(['id', 'category', 'en', 'bn']) &&
+        request.resource.data.id is string &&
+        request.resource.data.id.size() <= 120 &&
+        isValidCategory(request.resource.data.category);
+      allow delete: if hasPermission('manage_circulars');
+    }
+
+    // 3. Breaking News, Emergency Notices & Announcements
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow create, update: if hasPermission('manage_notices') &&
+        hasRequiredFields(['id', 'noticeType', 'priority', 'isActive', 'titleEn', 'titleBn']) &&
+        request.resource.data.id is string &&
+        request.resource.data.noticeType in ['breaking', 'emergency', 'announcement', 'important'] &&
+        request.resource.data.priority in ['critical', 'high', 'normal'] &&
+        request.resource.data.titleEn is string &&
+        request.resource.data.titleEn.size() <= 500 &&
+        request.resource.data.titleBn is string &&
+        request.resource.data.titleBn.size() <= 500 &&
+        request.resource.data.isActive is bool;
+      allow delete: if hasPermission('manage_notices');
+    }
+
+    // 4. Global Website, SEO & AdSense Settings
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update, delete: if hasPermission('manage_settings');
+    }
+
+    // 5. Dynamic Custom Categories
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if hasPermission('manage_categories');
+    }
+
+    // 6. Custom & Editorial Pages
+    match /pages/{pageId} {
+      allow read: if (resource.data.isPublished == true) || isAdmin();
+      allow create, update, delete: if hasPermission('manage_settings');
+    }
+
+    // 7. Homepage Sections Layout
+    match /homepage_sections/{sectionId} {
+      allow read: if true;
+      allow create, update, delete: if hasPermission('manage_homepage');
+    }
+
+    // 8. Media Library Assets
+    match /media/{mediaId} {
+      allow read: if true;
+      allow create, update, delete: if hasPermission('upload_images');
+    }
+
+    // 9. Users & Editorial Administrators (PII & Super Admin Protected)
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isSuperAdmin();
+      allow create, update: if isSuperAdmin() &&
+        hasRequiredFields(['uid', 'email', 'name', 'role']) &&
+        request.resource.data.uid is string &&
+        request.resource.data.email is string &&
+        request.resource.data.name is string &&
+        request.resource.data.name.size() <= 150 &&
+        request.resource.data.role in ['super_admin', 'admin', 'editor', 'author', 'moderator'] &&
+        (request.resource.data.email != "mostak4526159@gmail.com" || request.resource.data.role == 'super_admin');
+      allow delete: if isSuperAdmin() && resource.data.email != "mostak4526159@gmail.com";
+    }
+
+    // 10. Admins Lookup & Multi-Admin Invitation Collection
+    match /admins/{adminId} {
+      allow read: if isAuthenticated();
+      allow create, update: if isSuperAdmin() &&
+        (request.resource.data.email != "mostak4526159@gmail.com" ||
+         (request.resource.data.role == 'super_admin' && request.resource.data.status == 'active'));
+      allow delete: if isSuperAdmin() && adminId != "mostak4526159@gmail.com";
+    }
+
+    // 11. Editorial Activity Audit Logs
+    match /activity_logs/{logId} {
+      allow read: if hasPermission('view_logs');
+      allow create: if isAdmin() &&
+        hasRequiredFields(['actorEmail', 'actionType', 'detailsEn', 'detailsBn']) &&
+        request.resource.data.actorEmail is string &&
+        request.resource.data.actionType is string &&
+        request.resource.data.detailsEn is string &&
+        request.resource.data.detailsEn.size() <= 1000 &&
+        request.resource.data.detailsBn is string &&
+        request.resource.data.detailsBn.size() <= 1000;
+      allow update, delete: if false;
+    }
+
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
